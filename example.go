@@ -1,14 +1,18 @@
 package main
 
 import (
-	"log"
+	"context"
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/cloudwego/hertz/pkg/app"
+	"github.com/cloudwego/hertz/pkg/network/standard"
+
 	"github.com/rancher/apiserver/pkg/server"
 	"github.com/rancher/apiserver/pkg/store/apiroot"
 	"github.com/rancher/apiserver/pkg/store/empty"
 	"github.com/rancher/apiserver/pkg/types"
+
+	hServer "github.com/cloudwego/hertz/pkg/app/server"
 )
 
 type Foo struct {
@@ -55,24 +59,38 @@ func main() {
 	})
 
 	// Register root handler to list api versions
-	apiroot.Register(s.Schemas, []string{"v1", "v2"})
+	apiroot.Register(s.Schemas, []string{"v1"})
 
 	// Setup mux router to assign variables the server will look for (refer to MuxURLParser for all variable names)
-	router := mux.NewRouter()
-	router.Handle("/{prefix}/{type}", s)
-	router.Handle("/{prefix}/{type}/{name}", s)
+	//router := mux.NewRouter()
+	//router.Handle("/{prefix}/{type}", s)
+	//router.Handle("/{prefix}/{type}/{name}", s)
+	//
+	//// When a route is found construct a custom API request to serves up the API root content
+	//router.NotFoundHandler = http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+	//	s.Handle(&types.APIRequest{
+	//		Request:   r,
+	//		Response:  rw,
+	//		Type:      "apiRoot",
+	//		URLPrefix: "v1",
+	//	})
+	//})
 
-	// When a route is found construct a custom API request to serves up the API root content
-	router.NotFoundHandler = http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+	//h := hServer.Default(hServer.WithHostPorts("127.0.0.1:8888"))
+	h := hServer.New(hServer.WithTransport(standard.NewTransporter))
+
+	h.Any(":prefix/:type", s.HandlerFunc)
+	h.Any(":prefix/:type/:name", s.HandlerFunc)
+	h.NoRoute(func(ctx context.Context, c *app.RequestContext) {
 		s.Handle(&types.APIRequest{
-			Request:   r,
-			Response:  rw,
-			Type:      "apiRoot",
-			URLPrefix: "v1",
+			RequestCtx: c,
+			Type:       "apiRoot",
+			URLPrefix:  "v1",
 		})
 	})
+	h.Spin()
 
 	// Start API Server
-	log.Print("Listening on :8080")
-	log.Fatal(http.ListenAndServe(":8080", router))
+	//log.Print("Listening on :8088")
+	//log.Fatal(http.ListenAndServe(":8088", router))
 }

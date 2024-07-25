@@ -1,12 +1,16 @@
 package handlers
 
 import (
+	"fmt"
+
 	"github.com/rancher/apiserver/pkg/apierror"
 	"github.com/rancher/apiserver/pkg/types"
+
 	"github.com/rancher/wrangler/v3/pkg/schemas/validation"
 )
 
 func ByIDHandler(request *types.APIRequest) (types.APIObject, error) {
+	fmt.Println("ByIDHandler", request.Name)
 	if err := request.AccessControl.CanGet(request, request.Schema); err != nil {
 		return types.APIObject{}, err
 	}
@@ -23,7 +27,9 @@ func ByIDHandler(request *types.APIRequest) (types.APIObject, error) {
 
 	if request.Link != "" {
 		if handler, ok := request.Schema.LinkHandlers[request.Link]; ok {
-			handler.ServeHTTP(request.Response, request.Request)
+			//handler.ServeHTTP(request.Response, request.Request)
+			//handler.ServeHTTP(request.Response, request.Request)
+			fmt.Println("handler", handler)
 			return types.APIObject{}, validation.ErrComplete
 		}
 	}
@@ -32,6 +38,7 @@ func ByIDHandler(request *types.APIRequest) (types.APIObject, error) {
 }
 
 func ListHandler(request *types.APIRequest) (types.APIObjectList, error) {
+	fmt.Println("ListHandler", request.Name)
 	if request.Name == "" {
 		if err := request.AccessControl.CanList(request, request.Schema); err != nil {
 			return types.APIObjectList{}, err

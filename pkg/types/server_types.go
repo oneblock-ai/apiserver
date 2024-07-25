@@ -2,11 +2,12 @@ package types
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
 
+	"github.com/bytedance/sonic"
+	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/rancher/wrangler/v3/pkg/data"
 	"github.com/rancher/wrangler/v3/pkg/data/convert"
 	"github.com/rancher/wrangler/v3/pkg/schemas/validation"
@@ -36,8 +37,8 @@ type Pagination struct {
 }
 
 func (r *RawResource) MarshalJSON() ([]byte, error) {
-	type r_ RawResource
-	outer, err := json.Marshal((*r_)(r))
+	type r2 RawResource
+	outer, err := sonic.Marshal((*r2)(r))
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +48,7 @@ func (r *RawResource) MarshalJSON() ([]byte, error) {
 		return outer, nil
 	}
 
-	data, err := json.Marshal(r.APIObject.Object)
+	data, err := sonic.Marshal(r.APIObject.Object)
 	if err != nil {
 		return nil, err
 	}
@@ -114,8 +115,13 @@ type APIRequest struct {
 	URLBuilder     URLBuilder
 	AccessControl  AccessControl
 
-	Request  *http.Request
-	Response http.ResponseWriter
+	Request2  *http.Request
+	Response2 http.ResponseWriter
+
+	Context    context.Context
+	RequestCtx *app.RequestContext
+	//ProtocolRequest  protocol.Request
+	//ProtocolResponse protocol.Response
 }
 
 type apiOpKey struct{}
@@ -126,23 +132,29 @@ func GetAPIContext(ctx context.Context) *APIRequest {
 }
 
 func StoreAPIContext(apiOp *APIRequest) *APIRequest {
-	ctx := context.WithValue(apiOp.Request.Context(), apiOpKey{}, apiOp)
-	apiOp.Request = apiOp.Request.WithContext(ctx)
+	//ctx := context.WithValue(apiOp.Request.Context(), apiOpKey{}, apiOp)
+	//apiOp.Request = apiOp.Request.WithContext(ctx)
+	//return apiOp
+	//ctx := context.WithValue(apiOp.Context, apiOpKey{}, apiOp)
+	//apiOp.Request = apiOp.Request.WithContext(ctx)
+	//apiOp.RequestCtx = apiOp.RequestCtx.
 	return apiOp
 }
 
 func (r *APIRequest) WithContext(ctx context.Context) *APIRequest {
 	result := *r
-	result.Request = result.Request.WithContext(ctx)
+	//result.Request = result.Request.WithContext(ctx)
+	result.RequestCtx = r.RequestCtx.Copy()
 	return &result
 }
 
-func (r *APIRequest) Context() context.Context {
-	return r.Request.Context()
-}
+//func (r *APIRequest) Context() context.Context {
+//	return r.Request.Context()
+//}
 
 func (r *APIRequest) GetUser() string {
-	user, ok := request.UserFrom(r.Request.Context())
+	//user, ok := request.UserFrom(r.Request.Context())
+	user, ok := request.UserFrom(r.Context)
 	if ok {
 		return user.GetName()
 	}
@@ -150,7 +162,8 @@ func (r *APIRequest) GetUser() string {
 }
 
 func (r *APIRequest) GetUserInfo() (user.Info, bool) {
-	return request.UserFrom(r.Request.Context())
+	//return request.UserFrom(r.Request.Context())
+	return request.UserFrom(r.Context)
 }
 
 func (r *APIRequest) Option(key string) string {
@@ -159,14 +172,15 @@ func (r *APIRequest) Option(key string) string {
 
 func (r *APIRequest) WriteResponse(code int, obj APIObject) {
 	for _, warning := range obj.Warnings {
-		r.Response.Header().Add("Warning", fmt.Sprintf("%d %s %s", warning.Code, warning.Agent, warning.Text))
+		//r.Response.Header().Add("Warning", fmt.Sprintf("%d %s %s", warning.Code, warning.Agent, warning.Text))
+		r.RequestCtx.Response.Header.Add("Warning", fmt.Sprintf("%d %s %s", warning.Code, warning.Agent, warning.Text))
 	}
 	r.ResponseWriter.Write(r, code, obj)
 }
 
 func (r *APIRequest) WriteResponseList(code int, list APIObjectList) {
 	for _, warning := range list.Warnings {
-		r.Response.Header().Add("Warning", fmt.Sprintf("%d %s %s", warning.Code, warning.Agent, warning.Text))
+		r.RequestCtx.Response.Header.Add("Warning", fmt.Sprintf("%d %s %s", warning.Code, warning.Agent, warning.Text))
 	}
 	r.ResponseWriter.WriteList(r, code, list)
 }

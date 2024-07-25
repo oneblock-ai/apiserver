@@ -4,21 +4,20 @@ import (
 	"github.com/rancher/apiserver/pkg/types"
 )
 
-func AddCommonResponseHeader(apiOp *types.APIRequest) error {
+func AddCommonResponseHeader(apiOp *types.APIRequest) {
 	addExpires(apiOp)
-	return addSchemasHeader(apiOp)
+	addSchemasHeader(apiOp)
 }
 
-func addSchemasHeader(apiOp *types.APIRequest) error {
+func addSchemasHeader(apiOp *types.APIRequest) {
 	schema := apiOp.Schemas.Schemas["schema"]
 	if schema == nil {
-		return nil
+		return
 	}
 
-	apiOp.Response.Header().Set("X-Api-Schemas", apiOp.URLBuilder.Collection(schema))
-	return nil
+	apiOp.RequestCtx.Response.Header.Set("X-Api-Schemas", apiOp.URLBuilder.Collection(schema))
 }
 
 func addExpires(apiOp *types.APIRequest) {
-	apiOp.Response.Header().Set("Expires", "Wed 24 Feb 1982 18:42:00 GMT")
+	apiOp.RequestCtx.Response.Header.Set("Expires", "Wed 24 Feb 1982 18:42:00 GMT")
 }

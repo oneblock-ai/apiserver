@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/cloudwego/hertz/pkg/protocol"
+
 	"github.com/rancher/apiserver/pkg/types"
 )
 
@@ -15,18 +17,20 @@ type EncodingResponseWriter struct {
 
 func (j *EncodingResponseWriter) start(apiOp *types.APIRequest, code int) {
 	AddCommonResponseHeader(apiOp)
-	apiOp.Response.Header().Set("content-type", j.ContentType)
-	apiOp.Response.WriteHeader(code)
+	//apiOp.Response.Header().Set("content-type", j.ContentType)
+	//apiOp.Response.WriteHeader(code)
+	apiOp.RequestCtx.Response.Header.Set("content-type", j.ContentType)
+	apiOp.RequestCtx.Response.SetStatusCode(code)
 }
 
 func (j *EncodingResponseWriter) Write(apiOp *types.APIRequest, code int, obj types.APIObject) {
 	j.start(apiOp, code)
-	j.Body(apiOp, apiOp.Response, obj)
+	j.Body(apiOp, apiOp.RequestCtx.Response.BodyWriter(), obj)
 }
 
 func (j *EncodingResponseWriter) WriteList(apiOp *types.APIRequest, code int, list types.APIObjectList) {
 	j.start(apiOp, code)
-	j.BodyList(apiOp, apiOp.Response, list)
+	j.BodyList(apiOp, apiOp.RequestCtx.Response.BodyWriter(), list)
 }
 
 func (j *EncodingResponseWriter) Body(apiOp *types.APIRequest, writer io.Writer, obj types.APIObject) error {
@@ -70,7 +74,7 @@ func (j *EncodingResponseWriter) convert(context *types.APIRequest, input types.
 		Schema:      schema,
 		Links:       map[string]string{},
 		Actions:     map[string]string{},
-		ActionLinks: context.Request.Header.Get("X-API-Action-Links") != "",
+		ActionLinks: context.RequestCtx.Response.Header.Get("X-API-Action-Links") != "",
 		APIObject:   input,
 	}
 
@@ -113,7 +117,7 @@ func (j *EncodingResponseWriter) addLinks(schema *types.APISchema, context *type
 	}
 }
 
-func getLimit(req *http.Request) int {
+func getLimit(req protocol.Request) int {
 	limit, err := strconv.Atoi(req.Header.Get("limit"))
 	if err == nil && limit > 0 {
 		return limit
@@ -141,7 +145,7 @@ func newCollection(apiOp *types.APIRequest, list types.APIObjectList) *types.Gen
 	partial := list.Continue != "" || apiOp.Query.Get("continue") != ""
 	if partial {
 		result.Pagination = &types.Pagination{
-			Limit:   getLimit(apiOp.Request),
+			Limit:   getLimit(apiOp.RequestCtx.Request),
 			First:   apiOp.URLBuilder.Current(),
 			Partial: true,
 		}

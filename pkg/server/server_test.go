@@ -10,17 +10,18 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/rancher/wrangler/v3/pkg/schemas"
+	"github.com/rancher/wrangler/v3/pkg/schemas/validation"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/rancher/apiserver/pkg/apierror"
 	"github.com/rancher/apiserver/pkg/builtin"
 	"github.com/rancher/apiserver/pkg/fakes"
 	"github.com/rancher/apiserver/pkg/parse"
 	"github.com/rancher/apiserver/pkg/types"
 	"github.com/rancher/apiserver/pkg/writer"
-	"github.com/rancher/wrangler/v3/pkg/schemas"
-	"github.com/rancher/wrangler/v3/pkg/schemas/validation"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"github.com/stretchr/testify/suite"
 )
 
 type ServerSuite struct {
@@ -319,10 +320,10 @@ func (p *ServerSuite) TestServer_handleAction() {
 	apiRequest.AccessControl = accessControl
 
 	// If CanAction returns an error, get that back
-	expected_err := errors.New("")
-	accessControl.EXPECT().CanAction(apiRequest, nil, "").Return(expected_err)
+	expectedErr := errors.New("")
+	accessControl.EXPECT().CanAction(apiRequest, nil, "").Return(expectedErr)
 	err := handleAction(apiRequest)
-	assert.Equal(p.T(), err, expected_err)
+	assert.Equal(p.T(), err, expectedErr)
 
 	// If schema has the right ActionHandler return ErrComplete
 	accessControl.EXPECT().CanAction(apiRequest, schema, "").Return(nil)
@@ -376,7 +377,7 @@ func TestServeHTMLEscaping(t *testing.T) {
 		alphaNumeric      = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 		badChars          = `~!@#$%^&*()_+-=[]\{}|;':",./<>?`
 	)
-	xssUrl := url.URL{RawPath: xss}
+	xssURL := url.URL{RawPath: xss}
 
 	var escapedBadChars strings.Builder
 	for _, r := range badChars {
@@ -452,7 +453,7 @@ func TestServeHTMLEscaping(t *testing.T) {
 			name:             "Link XSS",
 			URL:              "https://cattle.io/v1/apps.daemonsets" + xss,
 			undesiredContent: xss,
-			desiredContent:   xssUrl.String(),
+			desiredContent:   xssURL.String(),
 		},
 	}
 	for _, test := range tests {

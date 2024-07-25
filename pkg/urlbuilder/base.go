@@ -5,13 +5,17 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/cloudwego/hertz/pkg/protocol"
 )
 
-func ParseRequestURL(r *http.Request) string {
+func ParseRequestURL(r protocol.Request) string {
 	var parsedURL url.URL
-	parsedURL.Scheme = GetScheme(r)
-	parsedURL.Host = GetHost(r, parsedURL.Scheme)
-	parsedURL = *parsedURL.JoinPath(r.Header.Get(PrefixHeader), r.URL.Path)
+	//parsedURL.Scheme = GetScheme(r)
+	parsedURL.Scheme = string(r.Scheme())
+	//parsedURL.Host = GetHost(r, parsedURL.Scheme)
+	parsedURL.Host = string(r.Host())
+	parsedURL = *parsedURL.JoinPath(r.Header.Get(PrefixHeader), string(r.Path()))
 	return parsedURL.String()
 }
 
@@ -29,7 +33,7 @@ func GetHost(r *http.Request, scheme string) string {
 	return r.Host
 }
 
-func GetScheme(r *http.Request) string {
+func GetScheme(r protocol.Request) string {
 	scheme := r.Header.Get(ForwardedProtoHeader)
 	if scheme != "" {
 		switch scheme {
@@ -40,14 +44,17 @@ func GetScheme(r *http.Request) string {
 		default:
 			return scheme
 		}
-	} else if r.TLS != nil {
-		return "https"
 	}
+	// TODO: TLS is not supported in Hertz
+	//if r.TLS != nil {
+	//	return "https"
+	//}
+
 	return "http"
 }
 
-func ParseResponseURLBase(currentURL string, r *http.Request) (string, error) {
-	path := r.URL.Path
+func ParseResponseURLBase(currentURL string, r protocol.Request) (string, error) {
+	path := string(r.Path())
 
 	index := strings.LastIndex(currentURL, path)
 	if index == -1 {

@@ -1,33 +1,34 @@
 package empty
 
 import (
-	"github.com/rancher/apiserver/pkg/types"
 	"github.com/rancher/wrangler/v3/pkg/schemas/validation"
+
+	"github.com/rancher/apiserver/pkg/types"
 )
 
 type Store struct {
 }
 
-func (e *Store) Delete(apiOp *types.APIRequest, schema *types.APISchema, id string) (types.APIObject, error) {
+func (e *Store) Delete(_ *types.APIRequest, _ *types.APISchema, _ string) (types.APIObject, error) {
 	return types.APIObject{}, validation.NotFound
 }
 
-func (e *Store) ByID(apiOp *types.APIRequest, schema *types.APISchema, id string) (types.APIObject, error) {
+func (e *Store) ByID(_ *types.APIRequest, _ *types.APISchema, _ string) (types.APIObject, error) {
 	return types.APIObject{}, validation.NotFound
 }
 
-func (e *Store) List(apiOp *types.APIRequest, schema *types.APISchema) (types.APIObjectList, error) {
+func (e *Store) List(_ *types.APIRequest, _ *types.APISchema) (types.APIObjectList, error) {
 	return types.APIObjectList{}, validation.NotFound
 }
 
-func (e *Store) Create(apiOp *types.APIRequest, schema *types.APISchema, data types.APIObject) (types.APIObject, error) {
+func (e *Store) Create(_ *types.APIRequest, _ *types.APISchema, _ types.APIObject) (types.APIObject, error) {
 	return types.APIObject{}, validation.NotFound
 }
 
-func (e *Store) Update(apiOp *types.APIRequest, schema *types.APISchema, data types.APIObject, id string) (types.APIObject, error) {
+func (e *Store) Update(_ *types.APIRequest, _ *types.APISchema, _ types.APIObject, _ string) (types.APIObject, error) {
 	return types.APIObject{}, validation.NotFound
 }
 
-func (e *Store) Watch(apiOp *types.APIRequest, schema *types.APISchema, wr types.WatchRequest) (chan types.APIEvent, error) {
+func (e *Store) Watch(_ *types.APIRequest, _ *types.APISchema, _ types.WatchRequest) (chan types.APIEvent, error) {
 	return nil, nil
 }

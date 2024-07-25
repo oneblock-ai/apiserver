@@ -9,6 +9,7 @@ const (
 	methodLabel   = "method"
 	codeLabel     = "code"
 )
+
 var (
 	// https://prometheus.io/docs/practices/instrumentation/#use-labels explains logic of having 1 total_requests
 	// counter with code label vs a counter for each code

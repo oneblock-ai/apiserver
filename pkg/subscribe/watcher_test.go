@@ -7,9 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rancher/apiserver/pkg/types"
 	"github.com/rancher/wrangler/v3/pkg/schemas"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/rancher/apiserver/pkg/types"
 )
 
 func Test_stream(t *testing.T) {

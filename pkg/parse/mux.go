@@ -3,7 +3,9 @@ package parse
 import (
 	"net/http"
 
+	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/gorilla/mux"
+
 	"github.com/rancher/apiserver/pkg/types"
 )
 
@@ -43,7 +45,7 @@ func Set(v Vars) mux.MatcherFunc {
 	}
 }
 
-func MuxURLParser(rw http.ResponseWriter, req *http.Request, schemas *types.APISchemas) (ParsedURL, error) {
+func MuxURLParser(_ http.ResponseWriter, req *http.Request, _ *types.APISchemas) (ParsedURL, error) {
 	vars := mux.Vars(req)
 	url := ParsedURL{
 		Type:      vars["type"],
@@ -54,6 +56,21 @@ func MuxURLParser(rw http.ResponseWriter, req *http.Request, schemas *types.APIS
 		Method:    req.Method,
 		Action:    vars["action"],
 		Query:     req.URL.Query(),
+	}
+
+	return url, nil
+}
+
+func HertzURLParser(c *app.RequestContext, _ *types.APISchemas) (ParsedURL, error) {
+	url := ParsedURL{
+		Type:      c.Query("type"),
+		Name:      c.Query("name"),
+		Namespace: c.Query("namespace"),
+		Link:      c.Query("link"),
+		Prefix:    c.Query("prefix"),
+		Method:    string(c.Method()),
+		Action:    c.Query("action"),
+		QueryArgs: c.QueryArgs(),
 	}
 
 	return url, nil

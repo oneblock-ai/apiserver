@@ -1,13 +1,14 @@
 package subscribe
 
 import (
-	"encoding/json"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/gorilla/websocket"
-	"github.com/rancher/apiserver/pkg/types"
 	"github.com/rancher/wrangler/v3/pkg/schemas/validation"
 	"github.com/sirupsen/logrus"
+
+	"github.com/rancher/apiserver/pkg/types"
 )
 
 var upgrader = websocket.Upgrader{
@@ -43,7 +44,7 @@ func Handler(apiOp *types.APIRequest, getter SchemasGetter, serverVersion string
 }
 
 func handler(apiOp *types.APIRequest, getter SchemasGetter, serverVersion string) error {
-	c, err := upgrader.Upgrade(apiOp.Response, apiOp.Request, nil)
+	c, err := upgrader.Upgrade(apiOp.Response2, apiOp.Request2, nil)
 	if err != nil {
 		return err
 	}
@@ -59,6 +60,7 @@ func handler(apiOp *types.APIRequest, getter SchemasGetter, serverVersion string
 		// Ensure that events gets fully consumed
 		go func() {
 			for range events {
+				logrus.Debugf("Event channel closed")
 			}
 		}()
 	}()
@@ -100,5 +102,5 @@ func writeData(apiOp *types.APIRequest, getter SchemasGetter, c *websocket.Conn,
 	}
 	defer messageWriter.Close()
 
-	return json.NewEncoder(messageWriter).Encode(event)
+	return sonic.ConfigDefault.NewEncoder(messageWriter).Encode(event)
 }

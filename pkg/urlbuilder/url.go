@@ -1,12 +1,15 @@
 package urlbuilder
 
 import (
-	"net/http"
 	"net/url"
 	"path"
 	"strings"
 
+	"github.com/cloudwego/hertz/pkg/app"
+	"github.com/cloudwego/hertz/pkg/protocol"
+
 	"github.com/rancher/apiserver/pkg/types"
+
 	"github.com/rancher/wrangler/v3/pkg/name"
 )
 
@@ -18,15 +21,15 @@ const (
 	ForwardedPortHeader    = "X-Forwarded-Port"
 )
 
-func NewPrefixed(r *http.Request, schemas *types.APISchemas, prefix string) (types.URLBuilder, error) {
-	return New(r, &DefaultPathResolver{
+func NewPrefixed(c *app.RequestContext, schemas *types.APISchemas, prefix string) (types.URLBuilder, error) {
+	return New(c, &DefaultPathResolver{
 		Prefix: prefix,
 	}, schemas)
 }
 
-func New(r *http.Request, resolver PathResolver, schemas *types.APISchemas) (types.URLBuilder, error) {
-	requestURL := ParseRequestURL(r)
-	responseURLBase, err := ParseResponseURLBase(requestURL, r)
+func New(c *app.RequestContext, resolver PathResolver, schemas *types.APISchemas) (types.URLBuilder, error) {
+	requestURL := ParseRequestURL(c.Request)
+	responseURLBase, err := ParseResponseURLBase(requestURL, c.Request)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +39,8 @@ func New(r *http.Request, resolver PathResolver, schemas *types.APISchemas) (typ
 		currentURL:      requestURL,
 		responseURLBase: responseURLBase,
 		pathResolver:    resolver,
-		query:           r.URL.Query(),
+		queryArgs:       c.QueryArgs(),
+		//query:           r.QueryString(),
 	}
 
 	return builder, nil
@@ -59,14 +63,18 @@ type DefaultURLBuilder struct {
 	schemas         *types.APISchemas
 	currentURL      string
 	responseURLBase string
-	query           url.Values
+	//query           url.Values
+	queryArgs *protocol.Args
 }
 
 func (u *DefaultURLBuilder) Marker(marker string) string {
 	newValues := url.Values{}
-	for k, v := range u.query {
-		newValues[k] = v
-	}
+	//for k, v := range u.query {
+	//	newValues[k] = v
+	//}
+	u.queryArgs.VisitAll(func(k, v []byte) {
+		newValues.Set(string(k), string(v))
+	})
 	newValues.Set("continue", marker)
 	return u.Current() + "?" + newValues.Encode()
 }

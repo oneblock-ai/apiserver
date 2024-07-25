@@ -1,0 +1,43 @@
+run:
+  deadline: 5m
+  allow-parallel-runners: true
+  skip-files:
+    - mock_
+  tests: true
+  build-tags:
+    - test
+linters-settings:
+  goimports:
+    local-prefixes: github.com/rancher/apiserver
+issues:
+  # don't skip warning about doc comments
+  # don't exclude the default set of lint
+  exclude-use-default: false
+  # restore some of the defaults
+  # (fill in the rest as needed)
+  exclude-rules:
+    - path: "pkg/subscribe/watcher_test.go"
+      linters:
+        - revive
+linters:
+  disable-all: true
+  enable:
+    - dupl
+    - errcheck
+    - exportloopref
+    - goconst
+    - gocyclo
+    - gofmt
+    - goimports
+    - gosimple
+    - govet
+    - ineffassign
+    - lll
+    - misspell
+    - nakedret
+    - prealloc
+    - staticcheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused

@@ -3,8 +3,6 @@ package writer
 import (
 	"compress/gzip"
 	"io"
-	"io/ioutil"
-	"net/http"
 	"strings"
 
 	"github.com/rancher/apiserver/pkg/types"
@@ -15,18 +13,20 @@ type GzipWriter struct {
 }
 
 func setup(apiOp *types.APIRequest) (*types.APIRequest, io.Closer) {
-	if !strings.Contains(apiOp.Request.Header.Get("Accept-Encoding"), "gzip") {
-		return apiOp, ioutil.NopCloser(nil)
+	resp := apiOp.RequestCtx.GetResponse()
+	if !strings.Contains(resp.Header.Get("Accept-Encoding"), "gzip") {
+		return apiOp, io.NopCloser(nil)
 	}
 
-	apiOp.Response.Header().Set("Content-Encoding", "gzip")
-	apiOp.Response.Header().Del("Content-Length")
+	resp.Header.Set("Content-Encoding", "gzip")
+	resp.Header.Del("Content-Length")
 
-	gz := gzip.NewWriter(apiOp.Response)
-	gzw := &gzipResponseWriter{Writer: gz, ResponseWriter: apiOp.Response}
+	gz := gzip.NewWriter(resp.BodyWriter())
+	//gzw := &gzipResponseWriter{Writer: gz, ResponseWriter: resp.BodyWriter()}
+	//gzw := &gzipResponseWriter{Writer: gz}
 
 	newOp := *apiOp
-	newOp.Response = gzw
+	newOp.RequestCtx.Response = *resp
 	return &newOp, gz
 }
 
@@ -44,7 +44,7 @@ func (g *GzipWriter) WriteList(apiOp *types.APIRequest, code int, obj types.APIO
 
 type gzipResponseWriter struct {
 	io.Writer
-	http.ResponseWriter
+	//http.ResponseWriter
 }
 
 func (g gzipResponseWriter) Write(b []byte) (int, error) {

@@ -22,7 +22,10 @@ func RedirectRewrite(next http.Handler) http.Handler {
 			r.Hijacker = h
 		}
 		next.ServeHTTP(r, req)
-		r.Close()
+		err := r.Close()
+		if err != nil {
+			r.ResponseWriter.WriteHeader(http.StatusInternalServerError)
+		}
 	})
 }
 

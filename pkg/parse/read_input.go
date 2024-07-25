@@ -1,19 +1,20 @@
 package parse
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 
+	"github.com/bytedance/sonic"
+	"github.com/cloudwego/hertz/pkg/protocol"
+
 	"github.com/rancher/apiserver/pkg/apierror"
 	"github.com/rancher/apiserver/pkg/types"
+
 	"github.com/rancher/wrangler/v3/pkg/data/convert"
 	"github.com/rancher/wrangler/v3/pkg/schemas/validation"
 	"k8s.io/apimachinery/pkg/util/yaml"
 )
-
-const reqMaxSize = (2 * 1 << 20) + 1
 
 var bodyMethods = map[string]bool{
 	http.MethodPut:  true,
@@ -22,12 +23,12 @@ var bodyMethods = map[string]bool{
 
 type Decode func(interface{}) error
 
-func ReadBody(req *http.Request) (types.APIObject, error) {
-	if !bodyMethods[req.Method] {
+func ReadBody(req protocol.Request) (types.APIObject, error) {
+	if !bodyMethods[string(req.Method())] {
 		return types.APIObject{}, nil
 	}
 
-	decode := getDecoder(req, io.LimitReader(req.Body, maxFormSize))
+	decode := getDecoder(req, io.LimitReader(req.BodyStream(), maxFormSize))
 
 	data := map[string]interface{}{}
 	if err := decode(&data); err != nil {
@@ -46,11 +47,11 @@ func toAPI(data map[string]interface{}) types.APIObject {
 	}
 }
 
-func getDecoder(req *http.Request, reader io.Reader) Decode {
+func getDecoder(req protocol.Request, reader io.Reader) Decode {
 	if req.Header.Get("Content-type") == "application/yaml" {
 		return yaml.NewYAMLToJSONDecoder(reader).Decode
 	}
-	decoder := json.NewDecoder(reader)
+	decoder := sonic.ConfigDefault.NewDecoder(reader)
 	decoder.UseNumber()
 	return decoder.Decode
 }

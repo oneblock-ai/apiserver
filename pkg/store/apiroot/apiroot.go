@@ -7,6 +7,7 @@ import (
 
 	"github.com/rancher/apiserver/pkg/store/empty"
 	"github.com/rancher/apiserver/pkg/types"
+
 	"github.com/rancher/wrangler/v3/pkg/schemas"
 )
 
@@ -79,7 +80,7 @@ func (a *Store) ByID(apiOp *types.APIRequest, schema *types.APISchema, id string
 	return types.DefaultByID(a, apiOp, schema, id)
 }
 
-func (a *Store) List(apiOp *types.APIRequest, schema *types.APISchema) (types.APIObjectList, error) {
+func (a *Store) List(_ *types.APIRequest, _ *types.APISchema) (types.APIObjectList, error) {
 	var roots types.APIObjectList
 
 	versions := a.versions
@@ -120,7 +121,7 @@ func apiVersionToAPIRootMap(version string) map[string]interface{} {
 	}
 }
 
-func apiVersionFromMap(schemas *types.APISchemas, apiVersion map[string]interface{}) string {
+func apiVersionFromMap(_ *types.APISchemas, apiVersion map[string]interface{}) string {
 	version, _ := apiVersion["version"].(string)
 	return version
 }

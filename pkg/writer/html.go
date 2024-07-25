@@ -1,9 +1,10 @@
 package writer
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/bytedance/sonic"
 
 	"github.com/rancher/apiserver/pkg/types"
 )
@@ -42,8 +43,8 @@ type HTMLResponseWriter struct {
 
 func (h *HTMLResponseWriter) start(apiOp *types.APIRequest, code int) {
 	AddCommonResponseHeader(apiOp)
-	apiOp.Response.Header().Set("content-type", "text/html")
-	apiOp.Response.WriteHeader(code)
+	apiOp.RequestCtx.Response.Header.Set("content-type", "text/html")
+	apiOp.RequestCtx.Response.SetStatusCode(code)
 }
 
 func (h *HTMLResponseWriter) Write(apiOp *types.APIRequest, code int, obj types.APIObject) {
@@ -80,19 +81,20 @@ func (h *HTMLResponseWriter) write(apiOp *types.APIRequest, code int, obj interf
 	headerString = strings.Replace(headerString, "%JSURL%", jsurl, 1)
 	headerString = strings.Replace(headerString, "%CSSURL%", cssurl, 1)
 
-	apiOp.Response.Write([]byte(headerString))
+	//apiOp.Response.Write([]byte(headerString))
+	apiOp.RequestCtx.Write([]byte(headerString))
 	if apiObj, ok := obj.(types.APIObject); ok {
-		h.Body(apiOp, apiOp.Response, apiObj)
+		h.Body(apiOp, apiOp.RequestCtx.Response.BodyWriter(), apiObj)
 	} else if list, ok := obj.(types.APIObjectList); ok {
-		h.BodyList(apiOp, apiOp.Response, list)
+		h.BodyList(apiOp, apiOp.RequestCtx.Response.BodyWriter(), list)
 	}
 	if schemaSchema != nil {
-		apiOp.Response.Write(end)
+		apiOp.RequestCtx.Write(end)
 	}
 }
 
 func jsonEncodeURL(str string) string {
-	data, _ := json.Marshal(str)
+	data, _ := sonic.Marshal(str)
 	return string(data)
 }
 

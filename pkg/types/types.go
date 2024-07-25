@@ -8,10 +8,10 @@ import (
 
 type Collection struct {
 	Type         string            `json:"type,omitempty"`
+	ResourceType string            `json:"resourceType"`
 	Links        map[string]string `json:"links"`
 	CreateTypes  map[string]string `json:"createTypes,omitempty"`
 	Actions      map[string]string `json:"actions"`
-	ResourceType string            `json:"resourceType"`
 	Pagination   *Pagination       `json:"pagination,omitempty"`
 	Revision     string            `json:"revision,omitempty"`
 	Continue     string            `json:"continue,omitempty"`

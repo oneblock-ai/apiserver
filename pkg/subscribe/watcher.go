@@ -2,11 +2,12 @@ package subscribe
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"sync"
 
+	"github.com/bytedance/sonic"
 	"github.com/gorilla/websocket"
+
 	"github.com/rancher/apiserver/pkg/types"
 )
 
@@ -89,7 +90,9 @@ func (s *WatchSession) stream(ctx context.Context, sub Subscribe, result chan<- 
 	}
 
 	if c == nil {
-		<-s.apiOp.Context().Done()
+		//<-s.apiOp.Context().Done()
+		//<-s.apiOp.Context().Done()
+		return nil
 	} else {
 		for event := range c {
 			if event.Error == nil {
@@ -102,6 +105,7 @@ func (s *WatchSession) stream(ctx context.Context, sub Subscribe, result chan<- 
 					go func() {
 						for range c {
 							// continue to drain until close
+							continue
 						}
 					}()
 					return nil
@@ -122,7 +126,7 @@ func NewWatchSession(apiOp *types.APIRequest, getter SchemasGetter) *WatchSessio
 		watchers: map[string]func(){},
 	}
 
-	ws.ctx, ws.cancel = context.WithCancel(apiOp.Request.Context())
+	ws.ctx, ws.cancel = context.WithCancel(apiOp.Request2.Context())
 	return ws
 }
 
@@ -155,7 +159,7 @@ func (s *WatchSession) watch(conn *websocket.Conn, resp chan types.APIEvent) err
 
 		var sub Subscribe
 
-		if err := json.NewDecoder(r).Decode(&sub); err != nil {
+		if err := sonic.ConfigDefault.NewDecoder(r).Decode(&sub); err != nil {
 			sendErr(resp, err, Subscribe{})
 			continue
 		}

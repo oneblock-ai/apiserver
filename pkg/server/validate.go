@@ -9,6 +9,7 @@ import (
 	"github.com/rancher/apiserver/pkg/apierror"
 	"github.com/rancher/apiserver/pkg/parse"
 	"github.com/rancher/apiserver/pkg/types"
+
 	"github.com/rancher/wrangler/v3/pkg/schemas"
 	"github.com/rancher/wrangler/v3/pkg/schemas/validation"
 )
@@ -41,12 +42,14 @@ func ValidateAction(request *types.APIRequest) (*schemas.Action, error) {
 }
 
 func CheckCSRF(apiOp *types.APIRequest) error {
-	if !parse.IsBrowser(apiOp.Request, false) {
+	if !parse.IsBrowser(apiOp.RequestCtx.Request, false) {
 		return nil
 	}
 
-	cookie, err := apiOp.Request.Cookie(csrfCookie)
-	if err == http.ErrNoCookie {
+	//cookie, err := apiOp.Request.Cookie(csrfCookie)
+	cookie := apiOp.RequestCtx.Cookie(csrfCookie)
+	//if errors.Is(err, http.ErrNoCookie) {
+	if cookie == nil {
 		// 16 bytes = 32 Hex Char = 128 bit entropy
 		bytes := make([]byte, 16)
 		_, err := rand.Read(bytes)
@@ -54,28 +57,31 @@ func CheckCSRF(apiOp *types.APIRequest) error {
 			return apierror.WrapAPIError(err, validation.ServerError, "Failed in CSRF processing")
 		}
 
-		cookie = &http.Cookie{
-			Name:   csrfCookie,
-			Value:  hex.EncodeToString(bytes),
-			Path:   "/",
-			Secure: true,
-		}
-
-		http.SetCookie(apiOp.Response, cookie)
-	} else if err != nil {
-		return apierror.NewAPIError(validation.InvalidCSRFToken, "Failed to parse cookies")
-	} else if apiOp.Method != http.MethodGet {
-		/*
-		 * Very important to use apiOp.Method and not apiOp.Request.Method. The client can override the HTTP method with _method
-		 */
-		if cookie.Value == apiOp.Request.Header.Get(csrfHeader) {
-			// Good
-		} else if cookie.Value == apiOp.Request.URL.Query().Get(csrfCookie) {
-			// Good
-		} else {
-			return apierror.NewAPIError(validation.InvalidCSRFToken, "Invalid CSRF token")
-		}
+		//cookie = &http.Cookie{
+		//	Name:   csrfCookie,
+		//	Value:  hex.EncodeToString(bytes),
+		//	Path:   "/",
+		//	Secure: true,
+		//}
+		apiOp.RequestCtx.Request.SetCookie(csrfCookie, hex.EncodeToString(bytes))
+		//http.SetCookie(apiOp.Response, cookie)
 	}
+	//} else if err != nil {
+	//	return apierror.NewAPIError(validation.InvalidCSRFToken, "Failed to parse cookies")
+	//} else if apiOp.Method != http.MethodGet {
+	//	/*
+	//	 * Very important to use apiOp.Method and not apiOp.Request.Method. The client can override the HTTP method with _method
+	//	 */
+	//	if cookie.Value == apiOp.Request.Header.Get(csrfHeader) {
+	//		// Good
+	//		return nil
+	//	} else if cookie.Value == apiOp.Request.URL.Query().Get(csrfCookie) {
+	//		// Good
+	//		return nil
+	//	} else {
+	//		return apierror.NewAPIError(validation.InvalidCSRFToken, "Invalid CSRF token")
+	//	}
+	//}
 
 	return nil
 }
