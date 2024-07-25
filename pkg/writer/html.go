@@ -1,9 +1,10 @@
 package writer
 
 import (
-	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/bytedance/sonic"
 
 	"github.com/rancher/apiserver/pkg/types"
 )
@@ -92,7 +93,7 @@ func (h *HTMLResponseWriter) write(apiOp *types.APIRequest, code int, obj interf
 }
 
 func jsonEncodeURL(str string) string {
-	data, _ := json.Marshal(str)
+	data, _ := sonic.Marshal(str)
 	return string(data)
 }
 

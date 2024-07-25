@@ -1,13 +1,14 @@
 package subscribe
 
 import (
-	"encoding/json"
 	"time"
 
+	"github.com/bytedance/sonic"
 	"github.com/gorilla/websocket"
-	"github.com/rancher/apiserver/pkg/types"
 	"github.com/rancher/wrangler/v3/pkg/schemas/validation"
 	"github.com/sirupsen/logrus"
+
+	"github.com/rancher/apiserver/pkg/types"
 )
 
 var upgrader = websocket.Upgrader{
@@ -100,5 +101,5 @@ func writeData(apiOp *types.APIRequest, getter SchemasGetter, c *websocket.Conn,
 	}
 	defer messageWriter.Close()
 
-	return json.NewEncoder(messageWriter).Encode(event)
+	return sonic.ConfigDefault.NewEncoder(messageWriter).Encode(event)
 }

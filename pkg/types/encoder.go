@@ -1,18 +1,18 @@
 package types
 
 import (
-	"encoding/json"
 	"io"
 
+	"github.com/bytedance/sonic"
 	"github.com/ghodss/yaml"
 )
 
 func JSONEncoder(writer io.Writer, v interface{}) error {
-	return json.NewEncoder(writer).Encode(v)
+	return sonic.ConfigDefault.NewEncoder(writer).Encode(v)
 }
 
 func YAMLEncoder(writer io.Writer, v interface{}) error {
-	data, err := json.Marshal(v)
+	data, err := sonic.ConfigDefault.Marshal(v)
 	if err != nil {
 		return err
 	}
@@ -26,7 +26,7 @@ func YAMLEncoder(writer io.Writer, v interface{}) error {
 
 func JSONLinesEncoder(writer io.Writer, v interface{}) error {
 	if collection, ok := v.(*GenericCollection); ok {
-		encoder := json.NewEncoder(writer)
+		encoder := sonic.ConfigDefault.NewEncoder(writer)
 
 		// encode the top level object first
 		err := encoder.Encode(collection.Collection)
@@ -43,7 +43,7 @@ func JSONLinesEncoder(writer io.Writer, v interface{}) error {
 		}
 	} else {
 		// if we receive a type that is not a collection fall back to standard json encoding
-		if err := json.NewEncoder(writer).Encode(v); err != nil {
+		if err := sonic.ConfigDefault.NewEncoder(writer).Encode(v); err != nil {
 			return err
 		}
 	}

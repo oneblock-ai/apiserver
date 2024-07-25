@@ -2,11 +2,12 @@ package subscribe
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"sync"
 
+	"github.com/bytedance/sonic"
 	"github.com/gorilla/websocket"
+
 	"github.com/rancher/apiserver/pkg/types"
 )
 
@@ -155,7 +156,7 @@ func (s *WatchSession) watch(conn *websocket.Conn, resp chan types.APIEvent) err
 
 		var sub Subscribe
 
-		if err := json.NewDecoder(r).Decode(&sub); err != nil {
+		if err := sonic.ConfigDefault.NewDecoder(r).Decode(&sub); err != nil {
 			sendErr(resp, err, Subscribe{})
 			continue
 		}

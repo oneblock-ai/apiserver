@@ -1,16 +1,17 @@
 package parse
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 
-	"github.com/rancher/apiserver/pkg/apierror"
-	"github.com/rancher/apiserver/pkg/types"
+	"github.com/bytedance/sonic"
 	"github.com/rancher/wrangler/v3/pkg/data/convert"
 	"github.com/rancher/wrangler/v3/pkg/schemas/validation"
 	"k8s.io/apimachinery/pkg/util/yaml"
+
+	"github.com/rancher/apiserver/pkg/apierror"
+	"github.com/rancher/apiserver/pkg/types"
 )
 
 const reqMaxSize = (2 * 1 << 20) + 1
@@ -50,7 +51,7 @@ func getDecoder(req *http.Request, reader io.Reader) Decode {
 	if req.Header.Get("Content-type") == "application/yaml" {
 		return yaml.NewYAMLToJSONDecoder(reader).Decode
 	}
-	decoder := json.NewDecoder(reader)
+	decoder := sonic.ConfigDefault.NewDecoder(reader)
 	decoder.UseNumber()
 	return decoder.Decode
 }

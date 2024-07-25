@@ -2,11 +2,11 @@ package types
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
 
+	"github.com/bytedance/sonic"
 	"github.com/rancher/wrangler/v3/pkg/data"
 	"github.com/rancher/wrangler/v3/pkg/data/convert"
 	"github.com/rancher/wrangler/v3/pkg/schemas/validation"
@@ -37,7 +37,7 @@ type Pagination struct {
 
 func (r *RawResource) MarshalJSON() ([]byte, error) {
 	type r_ RawResource
-	outer, err := json.Marshal((*r_)(r))
+	outer, err := sonic.Marshal((*r_)(r))
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func (r *RawResource) MarshalJSON() ([]byte, error) {
 		return outer, nil
 	}
 
-	data, err := json.Marshal(r.APIObject.Object)
+	data, err := sonic.Marshal(r.APIObject.Object)
 	if err != nil {
 		return nil, err
 	}
