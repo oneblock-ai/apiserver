@@ -10,6 +10,7 @@ import (
 	"github.com/rancher/wrangler/v3/pkg/data"
 	"github.com/rancher/wrangler/v3/pkg/data/convert"
 	"github.com/rancher/wrangler/v3/pkg/schemas/validation"
+	"github.com/sirupsen/logrus"
 	meta2 "k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -37,7 +38,8 @@ type Pagination struct {
 
 func (r *RawResource) MarshalJSON() ([]byte, error) {
 	type r_ RawResource
-	outer, err := sonic.Marshal((*r_)(r))
+	json := sonic.Config{CompactMarshaler: true}.Froze()
+	outer, err := json.Marshal((*r_)(r))
 	if err != nil {
 		return nil, err
 	}
@@ -47,10 +49,11 @@ func (r *RawResource) MarshalJSON() ([]byte, error) {
 		return outer, nil
 	}
 
-	data, err := sonic.Marshal(r.APIObject.Object)
+	data, err := json.Marshal(r.APIObject.Object)
 	if err != nil {
 		return nil, err
 	}
+	logrus.Debugf("[debug] data1 %s\n", data)
 
 	if len(data) < 3 || data[0] != '{' || data[len(data)-1] != '}' {
 		return outer, nil

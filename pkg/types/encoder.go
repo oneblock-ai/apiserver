@@ -12,7 +12,7 @@ func JSONEncoder(writer io.Writer, v interface{}) error {
 }
 
 func YAMLEncoder(writer io.Writer, v interface{}) error {
-	data, err := sonic.ConfigDefault.Marshal(v)
+	data, err := sonic.Marshal(v)
 	if err != nil {
 		return err
 	}

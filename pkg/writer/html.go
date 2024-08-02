@@ -93,7 +93,10 @@ func (h *HTMLResponseWriter) write(apiOp *types.APIRequest, code int, obj interf
 }
 
 func jsonEncodeURL(str string) string {
-	data, _ := sonic.Marshal(str)
+	json := sonic.Config{
+		EscapeHTML: true,
+	}.Froze()
+	data, _ := json.Marshal(str)
 	return string(data)
 }
 
