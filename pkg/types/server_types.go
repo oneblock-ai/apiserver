@@ -10,7 +10,6 @@ import (
 	"github.com/rancher/wrangler/v3/pkg/data"
 	"github.com/rancher/wrangler/v3/pkg/data/convert"
 	"github.com/rancher/wrangler/v3/pkg/schemas/validation"
-	"github.com/sirupsen/logrus"
 	meta2 "k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -53,7 +52,6 @@ func (r *RawResource) MarshalJSON() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	logrus.Debugf("[debug] data1 %s\n", data)
 
 	if len(data) < 3 || data[0] != '{' || data[len(data)-1] != '}' {
 		return outer, nil

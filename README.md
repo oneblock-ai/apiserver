@@ -1,12 +1,11 @@
-Rancher API Server
+API Server
 ==================
+This repo is a fork of [github.com/rancher/apiserver](https://github.com/rancher/apiserver) and contains the low level API server framework used to create REST APIs
+consumed by [1blcok.ai](https://1block.ai) projects such as
+[github.com/llmos-ai/dashboard](https://github.com/llmos-ai/dashboard). 
 
-This repo contains the low level API server framework used to create REST APIs
-consumed by Rancher projects such as
-[github.com/rancher/ui](https://github.com/rancher/ui) and
-[github.com/rancher/dashboard](https://github.com/rancher/dashboard). The
-primary consumer of this framework is
-[github.com/rancher/steve](https://github.com/rancher/steve).
+The primary consumer of this framework is
+[github.com/oneblock-ai/steve](https://github.com/oneblock-ai/steve).
 
 Overview
 --------
