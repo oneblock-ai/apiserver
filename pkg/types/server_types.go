@@ -37,7 +37,10 @@ type Pagination struct {
 
 func (r *RawResource) MarshalJSON() ([]byte, error) {
 	type r_ RawResource
-	json := sonic.Config{CompactMarshaler: true}.Froze()
+	json := sonic.Config{
+		CompactMarshaler: true,
+		SortMapKeys:      true,
+	}.Froze()
 	outer, err := json.Marshal((*r_)(r))
 	if err != nil {
 		return nil, err
